@@ -32,7 +32,7 @@ export default function IndexScreen() {
       id: Math.random().toString(),
       text,
       completed: false,
-      profileId: currentProfile,
+      profileId: currentProfile.id,
       date: format(selectedDate, 'yyyy-MM-dd')
     };
     setTasks(prev => [...prev, newTask]);
