@@ -1,7 +1,18 @@
 
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { format } from 'date-fns';
+import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { format, addDays, subDays } from 'date-fns';
+import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
+import Animated, { 
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  runOnJS
+} from 'react-native-reanimated';
+
+const SWIPE_THRESHOLD = 100;
+const { width } = Dimensions.get('window');
 
 interface SwipeableDateProps {
   date: Date;
@@ -9,26 +20,54 @@ interface SwipeableDateProps {
   progress?: number;
 }
 
-export default function SwipeableDate({ date, progress = 0 }: SwipeableDateProps) {
+export default function SwipeableDate({ date, onDateChange, progress = 0 }: SwipeableDateProps) {
+  const translateX = useSharedValue(0);
+
+  const handleDateChange = (newDate: Date) => {
+    onDateChange(newDate);
+  };
+
+  const gestureHandler = useAnimatedGestureHandler({
+    onActive: (event) => {
+      translateX.value = event.translationX;
+    },
+    onEnd: (event) => {
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        if (event.translationX > 0) {
+          runOnJS(handleDateChange)(subDays(date, 1));
+        } else {
+          runOnJS(handleDateChange)(addDays(date, 1));
+        }
+      }
+      translateX.value = withSpring(0);
+    },
+  });
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
+
   return (
-    <View style={styles.container}>
-      <View style={styles.dateContainer}>
-        <Text style={styles.date}>{format(date, 'EEEE, MMMM d')}</Text>
-        <View style={styles.progressContainer}>
-          <View 
-            style={[
-              styles.progressBar, 
-              { width: `${progress}%` }
-            ]} 
-          />
-        </View>
-      </View>
-    </View>
+    <GestureHandlerRootView>
+      <PanGestureHandler onGestureEvent={gestureHandler}>
+        <Animated.View style={[styles.container, animatedStyle]}>
+          <View style={styles.dateContainer}>
+            <Text style={styles.date}>{format(date, 'EEEE, MMMM d')}</Text>
+            <View style={styles.progressContainer}>
+              <View style={[styles.progressBar, { width: `${progress}%` }]} />
+            </View>
+          </View>
+        </Animated.View>
+      </PanGestureHandler>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    width: width - 40,
     marginVertical: 10,
   },
   dateContainer: {
