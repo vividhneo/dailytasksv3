@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface TaskProps {
   task: {
-    id: number;
+    id: string;
     text: string;
     completed: boolean;
   };
@@ -31,12 +31,12 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 2,
     borderColor: '#000',
-    marginRight: 10,
+    marginRight: 15,
   },
   checked: {
     backgroundColor: '#000',

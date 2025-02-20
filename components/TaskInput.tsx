@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { IconSymbol } from './ui/IconSymbol';
+import { View, TextInput, StyleSheet } from 'react-native';
 
 interface TaskInputProps {
   onSubmit: (text: string) => void;
@@ -25,36 +23,25 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
         onChangeText={setText}
         placeholder="Add a new task..."
         onSubmitEditing={handleSubmit}
+        returnKeyType="done"
       />
-      <TouchableOpacity onPress={handleSubmit} style={styles.button}>
-        <IconSymbol name="plus" size={24} color="#fff" />
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
     padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    backgroundColor: '#fff',
   },
   input: {
-    flex: 1,
     height: 40,
-    marginRight: 10,
-    paddingHorizontal: 10,
+    paddingHorizontal: 15,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 5,
-  },
-  button: {
-    width: 40,
-    height: 40,
-    backgroundColor: '#000',
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#fff',
   },
 });
