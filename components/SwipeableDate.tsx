@@ -8,10 +8,11 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
   runOnJS
 } from 'react-native-reanimated';
 
-const SWIPE_THRESHOLD = 100;
+const SWIPE_THRESHOLD = 50;
 const { width } = Dimensions.get('window');
 
 interface SwipeableDateProps {
@@ -28,21 +29,37 @@ export default function SwipeableDate({ date, onDateChange, taskCount }: Swipeab
   };
 
   const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      translateX.value = withSpring(0);
-    },
+    onStart: () => {},
     onActive: (event) => {
       translateX.value = event.translationX;
     },
     onEnd: (event) => {
-      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
-        if (event.translationX > 0) {
-          runOnJS(handleDateChange)(subDays(date, 1));
-        } else {
-          runOnJS(handleDateChange)(addDays(date, 1));
+      const velocity = event.velocityX;
+      
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD || Math.abs(velocity) > 500) {
+        // Swipe right (to previous date)
+        if (event.translationX > 0 || velocity > 500) {
+          translateX.value = withTiming(width, {}, () => {
+            translateX.value = -width;
+            translateX.value = withTiming(0);
+            runOnJS(handleDateChange)(subDays(date, 1));
+          });
+        } 
+        // Swipe left (to next date)
+        else {
+          translateX.value = withTiming(-width, {}, () => {
+            translateX.value = width;
+            translateX.value = withTiming(0);
+            runOnJS(handleDateChange)(addDays(date, 1));
+          });
         }
+      } else {
+        translateX.value = withSpring(0, {
+          velocity: velocity,
+          damping: 15,
+          stiffness: 150
+        });
       }
-      translateX.value = withSpring(0);
     },
   });
 
@@ -53,7 +70,7 @@ export default function SwipeableDate({ date, onDateChange, taskCount }: Swipeab
   });
 
   return (
-    <GestureHandlerRootView>
+    <GestureHandlerRootView style={styles.root}>
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View style={[styles.container, animatedStyle]}>
           <View style={styles.dateContainer}>
@@ -67,9 +84,13 @@ export default function SwipeableDate({ date, onDateChange, taskCount }: Swipeab
 }
 
 const styles = StyleSheet.create({
+  root: {
+    width: '100%',
+  },
   container: {
     width: width - 40,
     marginVertical: 10,
+    alignSelf: 'center',
   },
   dateContainer: {
     padding: 16,
