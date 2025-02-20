@@ -79,26 +79,51 @@ export default function IndexScreen() {
           </TouchableOpacity>
         </View>
         {showCalendar && (
-          <View style={styles.calendarContainer}>
-            {Platform.OS === 'web' ? (
-              <input 
-                type="date"
-                value={format(selectedDate, 'yyyy-MM-dd')}
-                onChange={(e) => {
-                  setSelectedDate(new Date(e.target.value));
-                  setShowCalendar(false);
-                }}
-                style={styles.webDatePicker}
-              />
-            ) : (
-              <Calendar
-                current={selectedDate.toISOString()}
-                onDayPress={(day) => {
-                  setSelectedDate(new Date(day.timestamp));
-                  setShowCalendar(false);
-                }}
-              />
-            )}
+          <View style={styles.calendarPopup}>
+            <View style={styles.calendarHeader}>
+              <TouchableOpacity>
+                <Ionicons name="chevron-back" size={24} color="#666" />
+              </TouchableOpacity>
+              <Text style={styles.calendarTitle}>{format(selectedDate, 'MMMM yyyy')}</Text>
+              <TouchableOpacity>
+                <Ionicons name="chevron-forward" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.weekDaysHeader}>
+              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                <Text key={day} style={styles.weekDayText}>{day}</Text>
+              ))}
+            </View>
+            <Calendar
+              current={selectedDate.toISOString()}
+              onDayPress={(day) => {
+                setSelectedDate(new Date(day.timestamp));
+                setShowCalendar(false);
+              }}
+              theme={{
+                backgroundColor: 'transparent',
+                calendarBackground: 'transparent',
+                textSectionTitleColor: '#666',
+                selectedDayBackgroundColor: '#E76F51',
+                selectedDayTextColor: '#fff',
+                todayTextColor: '#E76F51',
+                dayTextColor: '#2d4150',
+                textDisabledColor: '#d9e1e8',
+                dotColor: '#E76F51',
+                monthTextColor: '#666',
+                textMonthFontSize: 16,
+                textDayFontSize: 14,
+              }}
+            />
+            <TouchableOpacity 
+              style={styles.todayButton}
+              onPress={() => {
+                setSelectedDate(new Date());
+                setShowCalendar(false);
+              }}
+            >
+              <Text style={styles.todayButtonText}>Today</Text>
+            </TouchableOpacity>
           </View>
         )}
         <SwipeableDate
@@ -123,6 +148,55 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
+  calendarPopup: {
+    position: 'absolute',
+    top: 60,
+    right: 10,
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+    width: 320,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+    zIndex: 1000,
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  calendarTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  weekDaysHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 8,
+  },
+  weekDayText: {
+    color: '#666',
+    fontSize: 12,
+  },
+  todayButton: {
+    backgroundColor: '#E76F51',
+    padding: 12,
+    borderRadius: 24,
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  todayButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
