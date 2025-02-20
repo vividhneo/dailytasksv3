@@ -12,7 +12,7 @@ import Animated, {
   runOnJS
 } from 'react-native-reanimated';
 
-const SWIPE_THRESHOLD = 50;
+const SWIPE_THRESHOLD = 80;
 const { width } = Dimensions.get('window');
 
 interface SwipeableDateProps {
@@ -23,51 +23,56 @@ interface SwipeableDateProps {
 
 export default function SwipeableDate({ date, onDateChange, taskCount }: SwipeableDateProps) {
   const translateX = useSharedValue(0);
+  const isSwipeInProgress = useSharedValue(false);
 
   const handleDateChange = (newDate: Date) => {
     onDateChange(newDate);
   };
 
   const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {},
+    onStart: () => {
+      isSwipeInProgress.value = true;
+    },
     onActive: (event) => {
-      translateX.value = event.translationX;
+      if (isSwipeInProgress.value) {
+        translateX.value = event.translationX;
+      }
     },
     onEnd: (event) => {
       const velocity = event.velocityX;
       
-      if (Math.abs(event.translationX) > SWIPE_THRESHOLD || Math.abs(velocity) > 500) {
-        // Swipe right (to previous date)
-        if (event.translationX > 0 || velocity > 500) {
-          translateX.value = withTiming(width, {}, () => {
-            translateX.value = -width;
-            translateX.value = withTiming(0);
+      if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
+        if (event.translationX > 0) {
+          // Swipe right (previous day)
+          translateX.value = withTiming(width, {
+            duration: 250,
+          }, () => {
             runOnJS(handleDateChange)(subDays(date, 1));
+            translateX.value = 0;
           });
-        } 
-        // Swipe left (to next date)
-        else {
-          translateX.value = withTiming(-width, {}, () => {
-            translateX.value = width;
-            translateX.value = withTiming(0);
+        } else {
+          // Swipe left (next day)
+          translateX.value = withTiming(-width, {
+            duration: 250,
+          }, () => {
             runOnJS(handleDateChange)(addDays(date, 1));
+            translateX.value = 0;
           });
         }
       } else {
+        // Reset position if swipe wasn't far enough
         translateX.value = withSpring(0, {
-          velocity: velocity,
-          damping: 15,
-          stiffness: 150
+          damping: 20,
+          stiffness: 200,
         });
       }
+      isSwipeInProgress.value = false;
     },
   });
 
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateX: translateX.value }],
-    };
-  });
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
 
   return (
     <GestureHandlerRootView style={styles.root}>
