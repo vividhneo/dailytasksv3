@@ -72,45 +72,35 @@ export default function IndexScreen() {
             }}
           />
           <TouchableOpacity
-            onPress={() => setShowCalendar(true)}
+            onPress={() => setShowCalendar(!showCalendar)}
             style={styles.calendarButton}
           >
             <Ionicons name="calendar" size={24} color="#666" />
           </TouchableOpacity>
         </View>
-        <Modal
-          visible={showCalendar}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowCalendar(false)}
-        >
-          <TouchableOpacity 
-            style={styles.modalOverlay} 
-            onPress={() => setShowCalendar(false)}
-          >
-            <View style={styles.modalContent}>
-              {Platform.OS === 'web' ? (
-                <input 
-                  type="date"
-                  value={format(selectedDate, 'yyyy-MM-dd')}
-                  onChange={(e) => {
-                    setSelectedDate(new Date(e.target.value));
-                    setShowCalendar(false);
-                  }}
-                  style={styles.webDatePicker}
-                />
-              ) : (
-                <Calendar
-                  current={selectedDate.toISOString()}
-                  onDayPress={(day) => {
-                    setSelectedDate(new Date(day.timestamp));
-                    setShowCalendar(false);
-                  }}
-                />
-              )}
-            </View>
-          </TouchableOpacity>
-        </Modal>
+        {showCalendar && (
+          <View style={styles.calendarContainer}>
+            {Platform.OS === 'web' ? (
+              <input 
+                type="date"
+                value={format(selectedDate, 'yyyy-MM-dd')}
+                onChange={(e) => {
+                  setSelectedDate(new Date(e.target.value));
+                  setShowCalendar(false);
+                }}
+                style={styles.webDatePicker}
+              />
+            ) : (
+              <Calendar
+                current={selectedDate.toISOString()}
+                onDayPress={(day) => {
+                  setSelectedDate(new Date(day.timestamp));
+                  setShowCalendar(false);
+                }}
+              />
+            )}
+          </View>
+        )}
         <SwipeableDate
           date={selectedDate}
           onDateChange={setSelectedDate}
@@ -145,6 +135,21 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '80%',
     maxWidth: 400,
+  },
+  calendarContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 5,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
   },
   webDatePicker: {
     fontSize: 16,
