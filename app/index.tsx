@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, SafeAreaView } from 'react-native';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
 
@@ -10,7 +10,7 @@ interface TaskType {
   completed: boolean;
 }
 
-export default function TasksScreen() {
+export default function IndexScreen() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
 
   const addTask = (text: string) => {
@@ -25,7 +25,7 @@ export default function TasksScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.taskList}>
+      <View style={styles.content}>
         {tasks.map(task => (
           <Task 
             key={task.id}
@@ -33,8 +33,8 @@ export default function TasksScreen() {
             onToggle={() => toggleTask(task.id)}
           />
         ))}
-      </ScrollView>
-      <TaskInput onSubmit={addTask} />
+        <TaskInput onSubmit={addTask} />
+      </View>
     </SafeAreaView>
   );
 }
@@ -44,7 +44,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  taskList: {
+  content: {
     flex: 1,
+    padding: 20,
   }
 });
