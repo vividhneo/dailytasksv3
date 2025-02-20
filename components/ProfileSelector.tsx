@@ -29,7 +29,7 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
       <TouchableOpacity 
         style={styles.selector} 
         onPress={() => setIsOpen(!isOpen)}
