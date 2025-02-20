@@ -47,8 +47,11 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => {
-                onCreateProfile('New Profile');
-                setModalVisible(false);
+                const name = prompt('Enter profile name:');
+                if (name) {
+                  onCreateProfile(name);
+                  setModalVisible(false);
+                }
               }}
             >
               <Text style={styles.addButtonText}>+ Add New Profile</Text>
