@@ -4,7 +4,6 @@ import { StyleSheet, View } from 'react-native';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
 import SwipeableDate from '../components/SwipeableDate';
-import { useState } from 'react';
 
 export default function TasksScreen() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
