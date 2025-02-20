@@ -1,6 +1,14 @@
 
-import React, { useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated, PanResponder } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { GestureHandlerRootView, PanGestureHandler } from 'react-native-gesture-handler';
+import Animated, { 
+  useAnimatedGestureHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  runOnJS
+} from 'react-native-reanimated';
 
 interface TaskProps {
   task: {
@@ -12,52 +20,56 @@ interface TaskProps {
   onDelete: (id: string) => void;
 }
 
-export default function Task({ task, onToggle, onDelete }: TaskProps) {
-  const pan = useRef(new Animated.ValueXY()).current;
-  const deleteButtonWidth = 70;
+const SWIPE_THRESHOLD = -70;
+const { width } = Dimensions.get('window');
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderMove: (_, gestureState) => {
-      if (gestureState.dx < 0 && gestureState.dx > -deleteButtonWidth) {
-        pan.x.setValue(gestureState.dx);
-      }
+export default function Task({ task, onToggle, onDelete }: TaskProps) {
+  const translateX = useSharedValue(0);
+
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: () => {
+      translateX.value = withSpring(0);
     },
-    onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx < -deleteButtonWidth / 2) {
-        Animated.spring(pan.x, {
-          toValue: -deleteButtonWidth,
-          useNativeDriver: false,
-        }).start();
+    onActive: (event) => {
+      const newTranslateX = Math.max(-100, Math.min(0, event.translationX));
+      translateX.value = newTranslateX;
+    },
+    onEnd: (event) => {
+      if (event.translationX < SWIPE_THRESHOLD) {
+        translateX.value = withSpring(-100);
       } else {
-        Animated.spring(pan.x, {
-          toValue: 0,
-          useNativeDriver: false,
-        }).start();
+        translateX.value = withSpring(0);
       }
     },
   });
 
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
+
   return (
-    <View style={styles.container}>
-      <Animated.View
-        style={[styles.taskContainer, { transform: [{ translateX: pan.x }] }]}
-        {...panResponder.panHandlers}
-      >
-        <TouchableOpacity onPress={onToggle} style={styles.taskContent}>
-          <View style={[styles.checkbox, task.completed && styles.checked]} />
-          <Text style={[styles.text, task.completed && styles.completedText]}>
-            {task.text}
-          </Text>
+    <GestureHandlerRootView>
+      <View style={styles.container}>
+        <PanGestureHandler onGestureEvent={gestureHandler}>
+          <Animated.View style={[styles.taskContainer, animatedStyle]}>
+            <TouchableOpacity onPress={onToggle} style={styles.taskContent}>
+              <View style={[styles.checkbox, task.completed && styles.checked]} />
+              <Text style={[styles.text, task.completed && styles.completedText]}>
+                {task.text}
+              </Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </PanGestureHandler>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => onDelete(task.id)}
+        >
+          <Text style={styles.deleteText}>Delete</Text>
         </TouchableOpacity>
-      </Animated.View>
-      <TouchableOpacity 
-        style={styles.deleteButton}
-        onPress={() => onDelete(task.id)}
-      >
-        <Text style={styles.deleteText}>Delete</Text>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -103,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ff4444',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 70,
+    width: 100,
   },
   deleteText: {
     color: '#fff',
