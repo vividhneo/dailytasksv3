@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
+import { format } from 'date-fns';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
 import ProfileSelector from '../components/ProfileSelector';
+import SwipeableDate from '../components/SwipeableDate';
 
 interface TaskType {
   id: string;
