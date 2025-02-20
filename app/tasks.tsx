@@ -3,8 +3,11 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
+import SwipeableDate from '../components/SwipeableDate';
+import { useState } from 'react';
 
 export default function TasksScreen() {
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [tasks, setTasks] = useState([]);
 
   const addTask = (text) => {
@@ -19,6 +22,11 @@ export default function TasksScreen() {
 
   return (
     <View style={styles.container}>
+      <SwipeableDate 
+        date={selectedDate} 
+        onDateChange={setSelectedDate}
+        progress={tasks.length > 0 ? (tasks.filter(task => task.completed).length / tasks.length) * 100 : 0}
+      />
       <TaskInput onAddTask={addTask} />
       <View style={styles.tasksContainer}>
         {tasks.map(task => (
