@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform } from 'react-native';
 import { format } from 'date-fns';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,13 +80,15 @@ export default function IndexScreen() {
         </View>
         {showCalendar && (
           <DateTimePicker
+            testID="dateTimePicker"
             value={selectedDate}
             mode="date"
             display="default"
             onChange={(event, selectedDate) => {
-              setShowCalendar(false);
+              const currentDate = selectedDate || date;
+              setShowCalendar(Platform.OS === 'ios');
               if (selectedDate) {
-                setSelectedDate(selectedDate);
+                setSelectedDate(currentDate);
               }
             }}
           />
@@ -118,9 +120,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+    paddingHorizontal: 4,
   },
   calendarButton: {
     padding: 8,
+    marginLeft: 8,
   },
   container: {
     flex: 1,
