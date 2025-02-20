@@ -34,37 +34,29 @@ export default function SwipeableDate({ date, onDateChange, taskCount }: Swipeab
       isSwipeInProgress.value = true;
     },
     onActive: (event) => {
-      if (isSwipeInProgress.value) {
-        translateX.value = event.translationX;
-      }
+      translateX.value = event.translationX;
     },
     onEnd: (event) => {
-      const velocity = event.velocityX;
-      
       if (Math.abs(event.translationX) > SWIPE_THRESHOLD) {
         if (event.translationX > 0) {
           // Swipe right (previous day)
           translateX.value = withTiming(width, {
-            duration: 250,
+            duration: 200,
           }, () => {
             runOnJS(handleDateChange)(subDays(date, 1));
-            translateX.value = 0;
+            translateX.value = withTiming(0, { duration: 0 });
           });
         } else {
           // Swipe left (next day)
           translateX.value = withTiming(-width, {
-            duration: 250,
+            duration: 200,
           }, () => {
             runOnJS(handleDateChange)(addDays(date, 1));
-            translateX.value = 0;
+            translateX.value = withTiming(0, { duration: 0 });
           });
         }
       } else {
-        // Reset position if swipe wasn't far enough
-        translateX.value = withSpring(0, {
-          damping: 20,
-          stiffness: 200,
-        });
+        translateX.value = withSpring(0);
       }
       isSwipeInProgress.value = false;
     },

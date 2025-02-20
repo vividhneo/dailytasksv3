@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView } from 'react-native';
 import { format } from 'date-fns';
@@ -15,80 +14,53 @@ interface TaskType {
   date: string;
 }
 
-interface Profile {
-  id: string;
-  name: string;
-}
-
 export default function IndexScreen() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
-  const [profiles, setProfiles] = useState<Profile[]>([
-    { id: '1', name: 'Personal' }
-  ]);
-  const [currentProfileId, setCurrentProfileId] = useState('1');
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const currentProfile = profiles.find(p => p.id === currentProfileId) || profiles[0];
-  const filteredTasks = tasks.filter(task => 
-    task.profileId === currentProfileId && 
-    task.date === format(selectedDate, 'yyyy-MM-dd')
-  );
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentProfile, setCurrentProfile] = useState<string>('default');
 
   const addTask = (text: string) => {
-    setTasks([
-      ...tasks,
-      {
-        id: Math.random().toString(),
-        text,
-        completed: false,
-        profileId: currentProfileId,
-        date: format(selectedDate, 'yyyy-MM-dd')
-      }
-    ]);
+    const newTask: TaskType = {
+      id: Math.random().toString(),
+      text,
+      completed: false,
+      profileId: currentProfile,
+      date: format(selectedDate, 'yyyy-MM-dd')
+    };
+    setTasks(prev => [...prev, newTask]);
   };
 
   const toggleTask = (id: string) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      )
+    );
   };
 
   const deleteTask = (id: string) => {
-    setTasks(tasks.filter(task => task.id !== id));
+    setTasks(prev => prev.filter(task => task.id !== id));
   };
 
-  const createProfile = (name: string) => {
-    const newProfile = {
-      id: Math.random().toString(),
-      name
-    };
-    setProfiles([...profiles, newProfile]);
-    setCurrentProfileId(newProfile.id);
-  };
+  const filteredTasks = tasks.filter(
+    task => task.date === format(selectedDate, 'yyyy-MM-dd')
+  );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <SwipeableDate 
+        <SwipeableDate
           date={selectedDate}
           onDateChange={setSelectedDate}
           taskCount={filteredTasks.length}
         />
-        <View style={styles.header}>
-          <ProfileSelector
-            currentProfile={currentProfile}
-            profiles={profiles}
-            onProfileChange={setCurrentProfileId}
-            onCreateProfile={createProfile}
-          />
-        </View>
         <View style={styles.taskList}>
           {filteredTasks.map(task => (
             <Task
               key={task.id}
               task={task}
               onToggle={() => toggleTask(task.id)}
-              onDelete={deleteTask}
+              onDelete={() => deleteTask(task.id)}
             />
           ))}
         </View>
@@ -106,9 +78,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-  },
-  header: {
-    marginBottom: 20,
   },
   taskList: {
     flex: 1,
