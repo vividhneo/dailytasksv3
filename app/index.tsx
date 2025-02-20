@@ -23,6 +23,10 @@ export default function IndexScreen() {
     ));
   };
 
+  const deleteTask = (id: string) => {
+    setTasks(tasks.filter(task => task.id !== id));
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -31,6 +35,7 @@ export default function IndexScreen() {
             key={task.id}
             task={task}
             onToggle={() => toggleTask(task.id)}
+            onDelete={deleteTask}
           />
         ))}
         <TaskInput onSubmit={addTask} />
