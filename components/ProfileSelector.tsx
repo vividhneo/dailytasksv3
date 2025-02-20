@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, TextInput } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 interface Profile {
   id: string;
@@ -15,7 +15,6 @@ interface ProfileSelectorProps {
 }
 
 export default function ProfileSelector({ currentProfile, profiles, onProfileChange, onCreateProfile }: ProfileSelectorProps) {
-  const [modalVisible, setModalVisible] = useState(false);
   const [newProfileModalVisible, setNewProfileModalVisible] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
 
@@ -28,43 +27,24 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
   };
 
   return (
-    <View>
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.selector}>
-        <Text style={styles.selectorText}>{currentProfile?.name || 'Personal'}</Text>
-      </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {profiles.map((profile) => (
-              <TouchableOpacity
-                key={profile.id}
-                style={styles.profileItem}
-                onPress={() => {
-                  onProfileChange(profile.id);
-                  setModalVisible(false);
-                }}
-              >
-                <Text style={styles.profileText}>{profile.name}</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => {
-                setModalVisible(false);
-                setNewProfileModalVisible(true);
-              }}
-            >
-              <Text style={styles.addButtonText}>+ Add New Profile</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+    <View style={styles.container}>
+      <View style={styles.pickerContainer}>
+        <Picker
+          selectedValue={currentProfile?.id}
+          onValueChange={onProfileChange}
+          style={styles.picker}
+        >
+          {profiles.map((profile) => (
+            <Picker.Item key={profile.id} label={profile.name} value={profile.id} />
+          ))}
+        </Picker>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => setNewProfileModalVisible(true)}
+        >
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity>
+      </View>
 
       <Modal
         animationType="slide"
@@ -107,14 +87,32 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
 }
 
 const styles = StyleSheet.create({
-  selector: {
-    padding: 10,
+  container: {
+    width: '100%',
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: '#f0f0f0',
     borderRadius: 8,
+    paddingRight: 5,
   },
-  selectorText: {
-    fontSize: 16,
-    fontWeight: '600',
+  picker: {
+    flex: 1,
+    height: 40,
+  },
+  addButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#007AFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   modalOverlay: {
     flex: 1,
@@ -133,25 +131,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 15,
     textAlign: 'center',
-  },
-  profileItem: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  profileText: {
-    fontSize: 16,
-  },
-  addButton: {
-    marginTop: 10,
-    padding: 15,
-    backgroundColor: '#f8f8f8',
-    borderRadius: 8,
-  },
-  addButtonText: {
-    color: '#007AFF',
-    textAlign: 'center',
-    fontSize: 16,
   },
   input: {
     borderWidth: 1,
