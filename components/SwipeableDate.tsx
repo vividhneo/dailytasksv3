@@ -17,10 +17,10 @@ const { width } = Dimensions.get('window');
 interface SwipeableDateProps {
   date: Date;
   onDateChange: (date: Date) => void;
-  progress?: number;
+  taskCount: number;
 }
 
-export default function SwipeableDate({ date, onDateChange, progress = 0 }: SwipeableDateProps) {
+export default function SwipeableDate({ date, onDateChange, taskCount }: SwipeableDateProps) {
   const translateX = useSharedValue(0);
 
   const handleDateChange = (newDate: Date) => {
@@ -28,6 +28,9 @@ export default function SwipeableDate({ date, onDateChange, progress = 0 }: Swip
   };
 
   const gestureHandler = useAnimatedGestureHandler({
+    onStart: () => {
+      translateX.value = withSpring(0);
+    },
     onActive: (event) => {
       translateX.value = event.translationX;
     },
@@ -55,9 +58,7 @@ export default function SwipeableDate({ date, onDateChange, progress = 0 }: Swip
         <Animated.View style={[styles.container, animatedStyle]}>
           <View style={styles.dateContainer}>
             <Text style={styles.date}>{format(date, 'EEEE, MMMM d')}</Text>
-            <View style={styles.progressContainer}>
-              <View style={[styles.progressBar, { width: `${progress}%` }]} />
-            </View>
+            <Text style={styles.taskCount}>{taskCount} tasks</Text>
           </View>
         </Animated.View>
       </PanGestureHandler>
@@ -88,16 +89,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000',
   },
-  progressContainer: {
-    height: 4,
-    backgroundColor: '#E9E8E8',
-    borderRadius: 2,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: '#38F2B8',
-    borderRadius: 2,
-  },
+  taskCount: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  }
 });

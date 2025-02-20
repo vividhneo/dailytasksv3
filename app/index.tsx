@@ -10,6 +10,7 @@ interface TaskType {
   text: string;
   completed: boolean;
   profileId: string;
+  date: string;
 }
 
 interface Profile {
@@ -23,9 +24,13 @@ export default function IndexScreen() {
     { id: '1', name: 'Personal' }
   ]);
   const [currentProfileId, setCurrentProfileId] = useState('1');
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const currentProfile = profiles.find(p => p.id === currentProfileId) || profiles[0];
-  const filteredTasks = tasks.filter(task => task.profileId === currentProfileId);
+  const filteredTasks = tasks.filter(task => 
+    task.profileId === currentProfileId && 
+    task.date === format(selectedDate, 'yyyy-MM-dd')
+  );
 
   const addTask = (text: string) => {
     setTasks([
@@ -34,7 +39,8 @@ export default function IndexScreen() {
         id: Math.random().toString(),
         text,
         completed: false,
-        profileId: currentProfileId
+        profileId: currentProfileId,
+        date: format(selectedDate, 'yyyy-MM-dd')
       }
     ]);
   };
@@ -61,6 +67,11 @@ export default function IndexScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <SwipeableDate 
+          date={selectedDate}
+          onDateChange={setSelectedDate}
+          taskCount={filteredTasks.length}
+        />
         <View style={styles.header}>
           <ProfileSelector
             currentProfile={currentProfile}
