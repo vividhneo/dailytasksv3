@@ -91,18 +91,6 @@ export default function IndexScreen() {
             }}
           />
         )}
-          currentProfile={currentProfile}
-          profiles={profiles}
-          onProfileChange={setCurrentProfileId}
-          onCreateProfile={(name) => {
-            const newProfile = {
-              id: Math.random().toString(),
-              name
-            };
-            setProfiles([...profiles, newProfile]);
-            setCurrentProfileId(newProfile.id);
-          }}
-        />
         <SwipeableDate
           date={selectedDate}
           onDateChange={setSelectedDate}
