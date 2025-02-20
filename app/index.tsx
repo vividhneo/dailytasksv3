@@ -16,8 +16,13 @@ interface TaskType {
 
 export default function IndexScreen() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
+  const [profiles, setProfiles] = useState<Profile[]>([
+    { id: '1', name: 'Personal' }
+  ]);
+  const [currentProfileId, setCurrentProfileId] = useState('1');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentProfile, setCurrentProfile] = useState<string>('default');
+
+  const currentProfile = profiles.find(p => p.id === currentProfileId) || profiles[0];
 
   const addTask = (text: string) => {
     const newTask: TaskType = {
@@ -49,6 +54,19 @@ export default function IndexScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        <ProfileSelector
+          currentProfile={currentProfile}
+          profiles={profiles}
+          onProfileChange={setCurrentProfileId}
+          onCreateProfile={(name) => {
+            const newProfile = {
+              id: Math.random().toString(),
+              name
+            };
+            setProfiles([...profiles, newProfile]);
+            setCurrentProfileId(newProfile.id);
+          }}
+        />
         <SwipeableDate
           date={selectedDate}
           onDateChange={setSelectedDate}
