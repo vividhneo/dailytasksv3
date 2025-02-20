@@ -1,12 +1,9 @@
-
 import React, { useState } from 'react';
 import { StyleSheet, View, SafeAreaView } from 'react-native';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
-import SwipeableDate from '../components/SwipeableDate';
 
 export default function TasksScreen() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [tasks, setTasks] = useState([]);
 
   const addTask = (text) => {
@@ -22,22 +19,16 @@ export default function TasksScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <SwipeableDate 
-          date={selectedDate} 
-          onDateChange={setSelectedDate}
-          progress={tasks.length > 0 ? (tasks.filter(task => task.completed).length / tasks.length) * 100 : 0}
-        />
-        <TaskInput onAddTask={addTask} />
         <View style={styles.tasksContainer}>
           {tasks.map(task => (
             <Task 
               key={task.id}
-              text={task.text}
-              completed={task.completed}
+              task={task}
               onToggle={() => toggleTask(task.id)}
             />
           ))}
         </View>
+        <TaskInput onSubmit={addTask} />
       </View>
     </SafeAreaView>
   );
@@ -51,10 +42,8 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
-    paddingTop: 40,
   },
   tasksContainer: {
-    marginTop: 20,
     flex: 1,
   },
 });
