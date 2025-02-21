@@ -1,0 +1,72 @@
+import React from 'react';
+import { motion, PanInfo, useAnimation } from 'framer-motion';
+import { format } from 'date-fns';
+
+interface SwipeableDateProps {
+  date: Date;
+  onDateChange: (newDate: Date) => void;
+  progress: number;
+}
+
+export default function SwipeableDate({ date, onDateChange, progress }: SwipeableDateProps) {
+  const controls = useAnimation();
+  const [dragStartX, setDragStartX] = React.useState(0);
+
+  const handleDragStart = (_: any, info: PanInfo) => {
+    setDragStartX(info.point.x);
+  };
+
+  const handleDragEnd = async (_: any, info: PanInfo) => {
+    const diff = info.point.x - dragStartX;
+    const threshold = 50; // minimum distance to trigger date change
+
+    if (Math.abs(diff) >= threshold) {
+      const newDate = new Date(date);
+      newDate.setDate(date.getDate() + (diff > 0 ? -1 : 1));
+      await controls.start({ x: diff > 0 ? 50 : -50, transition: { duration: 0.2 } });
+      onDateChange(newDate);
+      await controls.set({ x: 0 });
+    } else {
+      controls.start({ x: 0, transition: { type: "spring", stiffness: 300, damping: 25 } });
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-center px-4 py-4 select-none">
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -5, right: 5 }}
+        dragElastic={0.1}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        animate={controls}
+        className="flex flex-col text-center text-2xl font-semibold cursor-grab active:cursor-grabbing text-[#716666] w-full"
+        style={{
+          background: 'linear-gradient(to bottom, #EEEEEE, #FFFFFF)',
+          borderRadius: '9px',
+          padding: '0',
+          boxShadow: '12px 12px 32px rgba(13, 39, 80, 0.25), -10px -10px 15px rgba(255, 255, 255, 1)'
+        }}
+      >
+        <div className="mb-4 px-4 pt-4">
+          {format(date, 'EEEE, MMMM d')}
+        </div>
+        <div 
+          className="h-1.5 overflow-hidden bg-[#E9E8E8]"
+          style={{
+            borderBottomLeftRadius: '9px',
+            borderBottomRightRadius: '9px'
+          }}
+        >
+          <div
+            className="h-full transition-all duration-300 ease-in-out rounded-r-full"
+            style={{
+              width: `${progress}%`,
+              background: 'linear-gradient(to right, #38F2B8, #157356)',
+            }}
+          />
+        </div>
+      </motion.div>
+    </div>
+  );
+}

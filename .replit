@@ -50,11 +50,3 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx eas build --platform android --profile preview"
-
-[[workflows.workflow]]
-name = "Start Dev Server"
-author = 37325095
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx expo start --web"
