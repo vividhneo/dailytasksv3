@@ -96,9 +96,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   calendarModal: {
-    flex: 1,
-    justifyContent: 'center',
+    position: 'absolute',
+    top: '25%',
+    left: 20,
+    right: 20,
     backgroundColor: 'white',
-    marginTop: 100,
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
 });
