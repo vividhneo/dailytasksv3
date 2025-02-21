@@ -97,9 +97,16 @@ export default function IndexScreen() {
             <Calendar
               current={selectedDate.toISOString()}
               onDayPress={(day) => {
-                setSelectedDate(new Date(day.timestamp));
-                setShowCalendar(false);
+                const selectedDay = new Date(day.timestamp);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                if (selectedDay <= today) {
+                  setSelectedDate(selectedDay);
+                  setShowCalendar(false);
+                }
               }}
+              maxDate={new Date().toISOString()}
               theme={{
                 backgroundColor: 'transparent',
                 calendarBackground: 'transparent',
