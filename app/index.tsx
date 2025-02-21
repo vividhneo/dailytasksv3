@@ -58,25 +58,43 @@ export default function IndexScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <View style={styles.header}>
-          <ProfileSelector
-            currentProfile={currentProfile}
-            profiles={profiles}
-            onProfileChange={setCurrentProfileId}
-            onCreateProfile={(name) => {
-              const newProfile = {
-                id: Math.random().toString(),
-                name
-              };
-              setProfiles([...profiles, newProfile]);
-              setCurrentProfileId(newProfile.id);
-            }}
-          />
-          <TouchableOpacity
-            onPress={() => setShowCalendar(!showCalendar)}
-            style={styles.calendarButton}
-          >
-            <Ionicons name="calendar" size={24} color="#666" />
-          </TouchableOpacity>
+          <View style={{flex: 1}}>
+            <ProfileSelector
+              currentProfile={currentProfile}
+              profiles={profiles}
+              onProfileChange={setCurrentProfileId}
+              onCreateProfile={(name) => {
+                const newProfile = {
+                  id: Math.random().toString(),
+                  name
+                };
+                setProfiles([...profiles, newProfile]);
+                setCurrentProfileId(newProfile.id);
+              }}
+            />
+          </View>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity
+              onPress={() => setShowCalendar(!showCalendar)}
+              style={styles.calendarButton}
+            >
+              <Ionicons name="calendar" size={24} color="#666" />
+            </TouchableOpacity>
+            <Settings 
+              profiles={profiles}
+              onRenameProfile={(id, name) => {
+                setProfiles(profiles.map(p => 
+                  p.id === id ? {...p, name} : p
+                ));
+              }}
+              onDeleteProfile={(id) => {
+                setProfiles(profiles.filter(p => p.id !== id));
+                if (currentProfileId === id) {
+                  setCurrentProfileId('1');
+                }
+              }}
+            />
+          </View>
         </View>
         {showCalendar && (
           <View style={styles.calendarPopup}>
@@ -245,16 +263,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
+    paddingHorizontal: 4,
+    width: '100%',
   },
   headerIcons: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 12,
   },
   calendarButton: {
     padding: 8,
-    marginRight: 8,
-    alignSelf: 'flex-end',
   },
   container: {
     flex: 1,
