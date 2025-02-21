@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: '#e9ecef',
-    zIndex: 2000,
+    zIndex: 9999,
   },
   option: {
     padding: 12,

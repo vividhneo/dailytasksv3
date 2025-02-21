@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     width: width - 40,
     marginVertical: 10,
     alignSelf: 'center',
+    zIndex: 1,
   },
   dateContainer: {
     padding: 16,
