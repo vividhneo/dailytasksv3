@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform, Modal, Text } from 'react-native';
 import { format } from 'date-fns';
-import { Calendar } from '@react-native-community/datetimepicker';
+import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
