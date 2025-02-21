@@ -63,17 +63,19 @@ export default function IndexScreen() {
 
       <Modal
         visible={showCalendar}
-        animationType="slide"
+        animationType="fade"
         transparent={true}
         onRequestClose={() => setShowCalendar(false)}
       >
-        <View style={styles.calendarModal}>
-          <Calendar
-            onDayPress={(day) => {
-              setSelectedDate(new Date(day.timestamp));
-              setShowCalendar(false);
-            }}
-          />
+        <View style={styles.modalOverlay}>
+          <View style={styles.calendarModal}>
+            <Calendar
+              onDayPress={(day) => {
+                setSelectedDate(new Date(day.timestamp));
+                setShowCalendar(false);
+              }}
+            />
+          </View>
         </View>
       </Modal>
     </SafeAreaView>
@@ -95,11 +97,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   calendarModal: {
-    position: 'absolute',
-    top: '25%',
-    left: 20,
-    right: 20,
+    width: '90%',
+    maxWidth: 350,
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,

@@ -135,8 +135,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
-    width: '80%',
-    maxWidth: 400,
+    width: '90%',
+    maxWidth: 350,
+    marginHorizontal: 20,
   },
   modalHeader: {
     flexDirection: 'row',
