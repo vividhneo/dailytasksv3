@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform, Modal } from 'react-native';
+import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform, Modal, Text } from 'react-native';
 import { format } from 'date-fns';
 import { Calendar } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
