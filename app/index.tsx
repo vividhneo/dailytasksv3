@@ -100,7 +100,7 @@ export default function IndexScreen() {
                 const selectedDay = new Date(day.timestamp);
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                
+
                 if (selectedDay <= today) {
                   setSelectedDate(selectedDay);
                   setShowCalendar(false);
@@ -244,9 +244,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 16,
-    width: '100%',
+    marginBottom: 20,
+  },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   calendarButton: {
     padding: 8,
