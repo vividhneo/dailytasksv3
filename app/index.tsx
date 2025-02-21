@@ -239,10 +239,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
     paddingHorizontal: 4,
+    maxWidth: '100%',
+    width: '100%',
   },
   calendarButton: {
     padding: 8,
     marginLeft: 8,
+    position: 'relative',
+    right: 4,
   },
   container: {
     flex: 1,
