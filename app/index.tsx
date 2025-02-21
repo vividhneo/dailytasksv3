@@ -7,6 +7,7 @@ import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
 import ProfileSelector from '../components/ProfileSelector';
 import SwipeableDate from '../components/SwipeableDate';
+import Settings from '../components/Settings';
 
 interface TaskType {
   id: string;
