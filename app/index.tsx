@@ -238,15 +238,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
-    paddingHorizontal: 4,
-    maxWidth: '100%',
+    paddingHorizontal: 16,
     width: '100%',
   },
   calendarButton: {
     padding: 8,
-    marginLeft: 8,
-    position: 'relative',
-    right: 4,
+    marginRight: 8,
+    alignSelf: 'flex-end',
   },
   container: {
     flex: 1,
