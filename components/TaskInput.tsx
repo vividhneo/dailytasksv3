@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, StyleSheet } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { typography } from '../constants/theme';
 
 interface TaskInputProps {
   onSubmit: (text: string) => void;
@@ -10,7 +11,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
 
   const handleSubmit = () => {
     if (text.trim()) {
-      onSubmit(text);
+      onSubmit(text.trim());
       setText('');
     }
   };
@@ -19,9 +20,10 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
     <View style={styles.container}>
       <TextInput
         style={styles.input}
+        placeholder="Add a task..."
+        placeholderTextColor="#716666"
         value={text}
         onChangeText={setText}
-        placeholder="Add a new task..."
         onSubmitEditing={handleSubmit}
         returnKeyType="done"
       />
@@ -31,17 +33,20 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    backgroundColor: '#fff',
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
   },
   input: {
-    height: 40,
-    paddingHorizontal: 15,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    backgroundColor: '#fff',
+    fontSize: 16,
+    color: '#716666',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderStyle: 'dotted',
+    borderBottomColor: '#716666',
+    fontFamily: typography.fontFamily.regular,
   },
 });

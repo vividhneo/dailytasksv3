@@ -36,6 +36,28 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "fonts": [
+      {
+        "asset": "assets/fonts/Quicksand-Light.ttf",
+        "family": "Quicksand-Light"
+      },
+      {
+        "asset": "assets/fonts/Quicksand-Regular.ttf",
+        "family": "Quicksand-Regular"
+      },
+      {
+        "asset": "assets/fonts/Quicksand-Medium.ttf",
+        "family": "Quicksand-Medium"
+      },
+      {
+        "asset": "assets/fonts/Quicksand-SemiBold.ttf",
+        "family": "Quicksand-SemiBold"
+      },
+      {
+        "asset": "assets/fonts/Quicksand-Bold.ttf",
+        "family": "Quicksand-Bold"
+      }
+    ]
   }
 }

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform, Modal, Text } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { format } from 'date-fns';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,172 +9,250 @@ import Task from '../components/Task';
 import ProfileSelector from '../components/ProfileSelector';
 import SwipeableDate from '../components/SwipeableDate';
 import Settings from '../components/Settings';
+import { useTaskContext } from '../contexts/TaskContext';
+import type { Task as TaskType, Profile } from '../types/task';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CalendarIcon from '../assets/icons/calendar.svg';
 
-interface TaskType {
-  id: string;
-  text: string;
-  completed: boolean;
-  profileId: string;
-  date: string;
+interface CalendarDay {
+  timestamp: number;
+  dateString: string;
+  day: number;
+  month: number;
+  year: number;
 }
 
+// First, create a type for components that can be opened
+type OpenComponent = 'none' | 'calendar' | 'profile' | 'settings';
+
 export default function IndexScreen() {
-  const [tasks, setTasks] = useState<TaskType[]>([]);
-  const [showCalendar, setShowCalendar] = useState(false);
-  const [profiles, setProfiles] = useState<Profile[]>([
-    { id: '1', name: 'Personal' }
-  ]);
-  const [currentProfileId, setCurrentProfileId] = useState('1');
+  const { 
+    tasks, 
+    addTask, 
+    toggleTask, 
+    deleteTask, 
+    profiles, 
+    currentProfileId, 
+    setCurrentProfileId,
+    loading,
+    addProfile,
+    setProfiles
+  } = useTaskContext();
+  const [openComponent, setOpenComponent] = useState<OpenComponent>('none');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const insets = useSafeAreaInsets();
+  const isHandlingAction = useRef(false);
+
+  const log = (message: string, ...args: any[]) => {
+    console.log(`[UI] ${message}`, ...args);
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LinearGradient
+          colors={['#F8F8F8', '#F8F8F8', '#EAE8E8']}
+          locations={[0, 0.67, 1]}
+          style={StyleSheet.absoluteFill}
+        />
+        <SafeAreaView style={styles.safeArea}>
+          <View style={[styles.content, { paddingTop: insets.top }]}>
+            <Text>Loading...</Text>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   const currentProfile = profiles.find(p => p.id === currentProfileId) || profiles[0];
 
-  const addTask = (text: string) => {
-    const newTask: TaskType = {
-      id: Math.random().toString(),
-      text,
-      completed: false,
-      profileId: currentProfile.id,
-      date: format(selectedDate, 'yyyy-MM-dd')
-    };
-    setTasks(prev => [...prev, newTask]);
-  };
-
-  const toggleTask = (id: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === id ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const deleteTask = (id: string) => {
-    setTasks(prev => prev.filter(task => task.id !== id));
-  };
-
   const filteredTasks = tasks.filter(
-    task => task.date === format(selectedDate, 'yyyy-MM-dd')
+    (task: TaskType) => task.date === format(selectedDate, 'yyyy-MM-dd')
   );
 
+  const completedTasks = filteredTasks.filter(
+    (task: TaskType) => task.completed
+  );
+
+  const handleAddTask = (text: string) => {
+    addTask(text, format(selectedDate, 'yyyy-MM-dd'));
+  };
+
+  // Replace handleCalendarClose with this more generic handler
+  const handleComponentToggle = (component: OpenComponent, callback?: () => void) => {
+    log(`Toggling component: ${component}, current: ${openComponent}`);
+    
+    if (openComponent === component) {
+      // If clicking the same component, close it
+      setOpenComponent('none');
+    } else {
+      // If clicking a different component, switch to it
+      setOpenComponent(component);
+      if (callback) {
+        callback();
+      }
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={{flex: 1}}>
-            <ProfileSelector
-              currentProfile={currentProfile}
-              profiles={profiles}
-              onProfileChange={setCurrentProfileId}
-              onCreateProfile={(name) => {
-                const newProfile = {
-                  id: Math.random().toString(),
-                  name
-                };
-                setProfiles([...profiles, newProfile]);
-                setCurrentProfileId(newProfile.id);
+    <View style={styles.container}>
+      <LinearGradient
+        colors={['#F8F8F8', '#F8F8F8', '#EAE8E8']}
+        locations={[0, 0.67, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.content, { paddingTop: insets.top }]}>
+          {/* Add overlay first */}
+          {openComponent !== 'none' && (
+            <TouchableOpacity 
+              style={styles.modalOverlay}
+              activeOpacity={1}
+              onPress={() => {
+                log('Overlay pressed, closing component:', openComponent);
+                setOpenComponent('none');
               }}
             />
-          </View>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity
-              onPress={() => setShowCalendar(!showCalendar)}
-              style={styles.calendarButton}
-            >
-              <Ionicons name="calendar" size={24} color="#666" />
-            </TouchableOpacity>
-            <Settings 
-              profiles={profiles}
-              onRenameProfile={(id, name) => {
-                setProfiles(profiles.map(p => 
-                  p.id === id ? {...p, name} : p
-                ));
-              }}
-              onDeleteProfile={(id) => {
-                setProfiles(profiles.filter(p => p.id !== id));
-                if (currentProfileId === id) {
-                  setCurrentProfileId('1');
-                }
-              }}
-            />
-          </View>
-        </View>
-        {showCalendar && (
-          <View style={styles.calendarPopup}>
-            <View style={styles.calendarHeader}>
-              <TouchableOpacity>
-                <Ionicons name="chevron-back" size={24} color="#666" />
+          )}
+
+          {/* Then add all other content */}
+          <View style={styles.header}>
+            <View style={[{ flex: 1 }, styles.profileSelectorContainer]}>
+              <ProfileSelector
+                currentProfile={currentProfile}
+                profiles={profiles}
+                isOpen={openComponent === 'profile'}
+                onPress={() => handleComponentToggle('profile')}
+                onProfileChange={(id) => {
+                  setCurrentProfileId(id);
+                  setOpenComponent('none');
+                }}
+                onCreateProfile={(name) => {
+                  addProfile(name);
+                  setOpenComponent('none');
+                }}
+              />
+            </View>
+            <View style={styles.headerIcons}>
+              <TouchableOpacity
+                onPress={() => handleComponentToggle('calendar')}
+                style={styles.calendarButton}
+              >
+                <CalendarIcon width={16} height={16} fill="#666666" />
               </TouchableOpacity>
-              <Text style={styles.calendarTitle}>{format(selectedDate, 'MMMM yyyy')}</Text>
-              <TouchableOpacity>
-                <Ionicons name="chevron-forward" size={24} color="#666" />
+              <Settings 
+                profiles={profiles}
+                isOpen={openComponent === 'settings'}
+                onPress={() => handleComponentToggle('settings')}
+                onRenameProfile={(id, name) => {
+                  setProfiles(profiles.map(p => p.id === id ? {...p, name} : p));
+                  setOpenComponent('none');
+                }}
+                onDeleteProfile={(id) => {
+                  setProfiles(profiles.filter(p => p.id !== id));
+                  if (currentProfileId === id) {
+                    setCurrentProfileId('1');
+                  }
+                  setOpenComponent('none');
+                }}
+              />
+            </View>
+          </View>
+
+          {/* Calendar popup */}
+          {openComponent === 'calendar' && (
+            <View style={styles.calendarPopup}>
+              <Calendar
+                current={selectedDate.toISOString()}
+                onDayPress={(day: CalendarDay) => {
+                  log('Day pressed', day);
+                  const selectedDay = new Date(day.timestamp);
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+
+                  if (selectedDay <= today) {
+                    setSelectedDate(selectedDay);
+                    setOpenComponent('none');
+                  }
+                }}
+                maxDate={new Date().toISOString()}
+                theme={{
+                  backgroundColor: 'transparent',
+                  calendarBackground: 'transparent',
+                  textSectionTitleColor: '#666',
+                  selectedDayBackgroundColor: '#E76F51',
+                  selectedDayTextColor: '#fff',
+                  todayTextColor: '#E76F51',
+                  dayTextColor: '#2d4150',
+                  textDisabledColor: '#d9e1e8',
+                  dotColor: '#E76F51',
+                  monthTextColor: '#666',
+                  textMonthFontSize: 16,
+                  textDayFontSize: 14,
+                }}
+              />
+              <TouchableOpacity 
+                style={styles.todayButton}
+                onPress={() => {
+                  setSelectedDate(new Date());
+                  setOpenComponent('none');
+                }}
+              >
+                <Text style={styles.todayButtonText}>Today</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.weekDaysHeader}>
-              {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                <Text key={day} style={styles.weekDayText}>{day}</Text>
+          )}
+
+          <View style={[styles.mainContent, { zIndex: 1 }]}>
+            <SwipeableDate
+              date={selectedDate}
+              onDateChange={setSelectedDate}
+              taskCount={filteredTasks.length}
+              completedCount={completedTasks.length}
+            />
+            <View style={styles.taskList}>
+              {filteredTasks.map((task: TaskType) => (
+                <Task
+                  key={task.id}
+                  task={task}
+                  onToggle={() => toggleTask(task.id)}
+                  onDelete={() => deleteTask(task.id)}
+                />
               ))}
             </View>
-            <Calendar
-              current={selectedDate.toISOString()}
-              onDayPress={(day) => {
-                const selectedDay = new Date(day.timestamp);
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
-                if (selectedDay <= today) {
-                  setSelectedDate(selectedDay);
-                  setShowCalendar(false);
-                }
-              }}
-              maxDate={new Date().toISOString()}
-              theme={{
-                backgroundColor: 'transparent',
-                calendarBackground: 'transparent',
-                textSectionTitleColor: '#666',
-                selectedDayBackgroundColor: '#E76F51',
-                selectedDayTextColor: '#fff',
-                todayTextColor: '#E76F51',
-                dayTextColor: '#2d4150',
-                textDisabledColor: '#d9e1e8',
-                dotColor: '#E76F51',
-                monthTextColor: '#666',
-                textMonthFontSize: 16,
-                textDayFontSize: 14,
-              }}
-            />
-            <TouchableOpacity 
-              style={styles.todayButton}
-              onPress={() => {
-                setSelectedDate(new Date());
-                setShowCalendar(false);
-              }}
-            >
-              <Text style={styles.todayButtonText}>Today</Text>
-            </TouchableOpacity>
+            <TaskInput onSubmit={handleAddTask} />
           </View>
-        )}
-        <SwipeableDate
-          date={selectedDate}
-          onDateChange={setSelectedDate}
-          taskCount={filteredTasks.length}
-        />
-        <View style={styles.taskList}>
-          {filteredTasks.map(task => (
-            <Task
-              key={task.id}
-              task={task}
-              onToggle={() => toggleTask(task.id)}
-              onDelete={() => deleteTask(task.id)}
-            />
-          ))}
         </View>
-        <TaskInput onSubmit={addTask} />
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  dateContainer: {
+    width: '100%',
+    padding: 16,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 2.5,
+    elevation: 2,
+  },
   calendarPopup: {
     position: 'absolute',
     top: 60,
@@ -183,10 +262,7 @@ const styles = StyleSheet.create({
     padding: 16,
     width: 320,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
@@ -224,10 +300,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    zIndex: 100,
   },
   modalContent: {
     backgroundColor: 'white',
@@ -261,11 +340,10 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 20,
-    paddingHorizontal: 4,
-    width: '100%',
+    zIndex: 1000,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -275,15 +353,27 @@ const styles = StyleSheet.create({
   calendarButton: {
     padding: 8,
   },
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
   taskList: {
     flex: 1,
-  }
+  },
+  profileSelectorContainer: {
+    marginRight: 16,
+    zIndex: 999,
+    elevation: 999,
+  },
+  mainContent: {
+    flex: 1,
+    zIndex: 1,
+    elevation: 1,
+  },
+  date: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#716666',
+    marginBottom: 8,
+  },
+  taskCount: {
+    fontSize: 14,
+    color: '#716666',
+  },
 });

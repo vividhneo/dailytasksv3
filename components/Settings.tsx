@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { typography } from '../constants/theme';
 
 interface Profile {
   id: string;
@@ -10,120 +10,80 @@ interface Profile {
 
 interface SettingsProps {
   profiles: Profile[];
-  onRenameProfile: (id: string, newName: string) => void;
+  isOpen: boolean;
+  onPress: () => void;
+  onRenameProfile: (id: string, name: string) => void;
   onDeleteProfile: (id: string) => void;
 }
 
-export default function Settings({ profiles, onRenameProfile, onDeleteProfile }: SettingsProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [renamingProfile, setRenamingProfile] = useState<{id: string, name: string} | null>(null);
-  const [newName, setNewName] = useState('');
+export default function Settings({ profiles, isOpen, onPress, onRenameProfile, onDeleteProfile }: SettingsProps) {
+  const [editingProfile, setEditingProfile] = useState<{ id: string; name: string } | null>(null);
 
-  const handleRename = () => {
-    if (renamingProfile && newName.trim()) {
-      onRenameProfile(renamingProfile.id, newName.trim());
-      setRenamingProfile(null);
-      setNewName('');
+  const handleRename = (id: string, newName: string) => {
+    if (newName.trim()) {
+      onRenameProfile(id, newName.trim());
+      setEditingProfile(null);
     }
   };
 
   return (
-    <>
-      <TouchableOpacity onPress={() => setIsVisible(true)} style={styles.iconButton}>
-        <Ionicons name="settings-outline" size={24} color="#666" />
+    <View style={styles.container}>
+      <TouchableOpacity onPress={onPress}>
+        <Ionicons name="settings-outline" size={16} color="#666" />
       </TouchableOpacity>
 
       <Modal
         animationType="fade"
         transparent={true}
-        visible={isVisible}
-        onRequestClose={() => setIsVisible(false)}
+        visible={isOpen}
+        onRequestClose={onPress}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Settings</Text>
-              <TouchableOpacity onPress={() => setIsVisible(false)} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.sectionTitle}>Profiles</Text>
-            {profiles.map((profile) => (
-              <View key={profile.id} style={styles.profileItem}>
-                <Text style={styles.profileName}>{profile.name}</Text>
-                <View style={styles.profileActions}>
-                  <TouchableOpacity
-                    style={styles.actionButton}
-                    onPress={() => {
-                      setRenamingProfile(profile);
-                      setNewName(profile.name);
-                    }}
-                  >
-                    <Text style={styles.actionButtonText}>Rename</Text>
-                  </TouchableOpacity>
-                  {profile.id !== '1' && (
-                    <TouchableOpacity
-                      style={[styles.actionButton, styles.deleteButton]}
-                      onPress={() => onDeleteProfile(profile.id)}
-                    >
-                      <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Delete</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={onPress}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Settings</Text>
+                <TouchableOpacity onPress={onPress}>
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
               </View>
-            ))}
-          </View>
-        </View>
-      </Modal>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={!!renamingProfile}
-        onRequestClose={() => setRenamingProfile(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Rename Profile</Text>
-            <TextInput
-              style={styles.input}
-              value={newName}
-              onChangeText={setNewName}
-              placeholder="Enter new name"
-              autoFocus
-            />
-            <View style={styles.buttonContainer}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={() => {
-                  setRenamingProfile(null);
-                  setNewName('');
-                }}
-              >
-                <Text style={styles.buttonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.renameButton]}
-                onPress={handleRename}
-              >
-                <Text style={styles.buttonText}>Rename</Text>
-              </TouchableOpacity>
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Profiles</Text>
+                {profiles.map(profile => (
+                  <View key={profile.id} style={styles.profileContainer}>
+                    <Text style={styles.profileText}>{profile.name}</Text>
+                    <TouchableOpacity onPress={() => onRenameProfile(profile.id, 'New Name')}>
+                      <Text style={styles.renameText}>Rename</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => onDeleteProfile(profile.id)}>
+                      <Text style={styles.deleteText}>Delete</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
             </View>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  iconButton: {
-    padding: 8,
+  container: {
+    padding: 20,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -131,8 +91,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
-    width: '80%',
-    maxWidth: 400,
+    width: 320,
+    maxWidth: '90%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -142,77 +107,31 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#343a40',
+    fontFamily: typography.fontFamily.semiBold,
   },
-  closeButton: {
-    padding: 4,
+  section: {
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#666',
+    fontFamily: typography.fontFamily.semiBold,
     marginBottom: 12,
   },
-  profileItem: {
+  profileContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    marginVertical: 10,
   },
-  profileName: {
-    fontSize: 16,
-    color: '#343a40',
+  profileText: {
+    fontFamily: typography.fontFamily.regular,
   },
-  profileActions: {
-    flexDirection: 'row',
-    gap: 8,
+  renameText: {
+    color: '#007BFF',
+    fontFamily: typography.fontFamily.semiBold,
   },
-  actionButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    backgroundColor: '#f1f3f5',
-  },
-  actionButtonText: {
-    fontSize: 14,
-    color: '#343a40',
-  },
-  deleteButton: {
-    backgroundColor: '#ffe3e3',
-  },
-  deleteButtonText: {
-    color: '#e03131',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e9ecef',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    fontSize: 16,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-  },
-  button: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  cancelButton: {
-    backgroundColor: '#f1f3f5',
-  },
-  renameButton: {
-    backgroundColor: '#339af0',
-  },
-  buttonText: {
-    fontSize: 14,
-    color: 'white',
-    fontWeight: '500',
+  deleteText: {
+    color: 'red',
+    fontFamily: typography.fontFamily.semiBold,
   },
 });

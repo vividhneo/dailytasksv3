@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, TextInput, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { typography } from '../constants/theme';
 
 interface Profile {
   id: string;
@@ -11,12 +11,13 @@ interface Profile {
 interface ProfileSelectorProps {
   currentProfile: Profile;
   profiles: Profile[];
-  onProfileChange: (profileId: string) => void;
+  isOpen: boolean;
+  onPress: () => void;
+  onProfileChange: (id: string) => void;
   onCreateProfile: (name: string) => void;
 }
 
-export default function ProfileSelector({ currentProfile, profiles, onProfileChange, onCreateProfile }: ProfileSelectorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function ProfileSelector({ currentProfile, profiles, isOpen, onPress, onProfileChange, onCreateProfile }: ProfileSelectorProps) {
   const [newProfileModalVisible, setNewProfileModalVisible] = useState(false);
   const [newProfileName, setNewProfileName] = useState('');
 
@@ -32,13 +33,15 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
     <View style={[styles.container, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}>
       <TouchableOpacity 
         style={styles.selector} 
-        onPress={() => setIsOpen(!isOpen)}
+        onPress={onPress}
       >
-        <Text style={styles.selectorText}>{currentProfile?.name}</Text>
+        <Text style={styles.profileName}>
+          {currentProfile?.name || 'Select Profile'}
+        </Text>
         <Ionicons 
           name={isOpen ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color="#666"
+          size={14} 
+          color="#716666" 
         />
       </TouchableOpacity>
 
@@ -53,7 +56,6 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
               ]}
               onPress={() => {
                 onProfileChange(profile.id);
-                setIsOpen(false);
               }}
             >
               <Text style={[
@@ -67,12 +69,11 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => {
-              setIsOpen(false);
               setNewProfileModalVisible(true);
             }}
           >
             <Ionicons name="add-circle-outline" size={20} color="#007AFF" />
-            <Text style={styles.addButtonText}>New Profile</Text>
+            <Text style={[styles.addButtonText, { fontFamily: typography.fontFamily.regular }]}>New Profile</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -101,13 +102,13 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
                   setNewProfileName('');
                 }}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={[styles.buttonText, { fontFamily: typography.fontFamily.regular }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.createButton]}
                 onPress={handleCreateProfile}
               >
-                <Text style={styles.buttonText}>Create</Text>
+                <Text style={[styles.buttonText, { fontFamily: typography.fontFamily.regular }]}>Create</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -120,22 +121,18 @@ export default function ProfileSelector({ currentProfile, profiles, onProfileCha
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    zIndex: 1000,
   },
   selector: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 12,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  selectorText: {
-    fontSize: 16,
-    color: '#343a40',
-    fontWeight: '500',
+  profileName: {
+    fontSize: 14,
+    color: '#716666',
+    fontFamily: typography.fontFamily.regular,
+    marginRight: 8,
   },
   dropdown: {
     position: 'absolute',
@@ -144,30 +141,25 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'white',
     borderRadius: 8,
-    marginTop: 4,
-    padding: 4,
+    padding: 8,
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#e9ecef',
+    shadowRadius: 8,
     zIndex: 9999,
+    elevation: 9999,
   },
   option: {
     padding: 12,
     borderRadius: 6,
   },
   selectedOption: {
-    backgroundColor: '#e7f3ff',
+    backgroundColor: '#F5F5F5',
   },
   optionText: {
     fontSize: 16,
-    color: '#343a40',
+    color: '#716666',
+    fontFamily: typography.fontFamily.regular,
   },
   selectedOptionText: {
     color: '#007AFF',
