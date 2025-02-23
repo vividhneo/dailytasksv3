@@ -220,7 +220,9 @@ export default function IndexScreen() {
                 />
               ))}
             </View>
-            <TaskInput onSubmit={handleAddTask} />
+            <View style={styles.addTaskContainer}>
+              <TaskInput onSubmit={handleAddTask} />
+            </View>
           </View>
         </View>
       </SafeAreaView>
@@ -231,13 +233,18 @@ export default function IndexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    width: '100%',
   },
   safeArea: {
     flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   content: {
     flex: 1,
     paddingHorizontal: 16,
+    width: '100%',
+    alignItems: 'center',
   },
   dateContainer: {
     width: '100%',
@@ -341,8 +348,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    maxWidth: 1000,
+    width: '100%',
     marginBottom: 20,
+    marginTop: 40,
     zIndex: 1000,
   },
   headerIcons: {
@@ -354,7 +364,15 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   taskList: {
-    flex: 1,
+    paddingTop: 20,
+    paddingLeft: 20,
+    alignItems: 'left',
+    width: '100%',
+  },
+  addTaskContainer: {
+    paddingLeft: 50,
+    alignItems: 'left',
+    width: '100%',
   },
   profileSelectorContainer: {
     marginRight: 16,
@@ -365,6 +383,9 @@ const styles = StyleSheet.create({
     flex: 1,
     zIndex: 1,
     elevation: 1,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 1000,
   },
   date: {
     fontSize: 18,

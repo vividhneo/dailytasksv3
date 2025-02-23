@@ -2,6 +2,7 @@ import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAsyncStorage } from '../hooks/useAsyncStorage';
 import { format, addDays } from 'date-fns';
+import { Platform } from 'react-native';
 
 interface Task {
   id: string;
@@ -106,22 +107,26 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
   const rolloverTasks = async (fromDate: string, toDate: string) => {
     try {
-      const incompleteTasks = tasks.filter(task => 
-        task.date === fromDate && 
-        !task.completed
-      );
+      // Process rollover for all profiles
+      for (const profile of profiles) {
+        const incompleteTasks = tasks.filter(task => 
+          task.date === fromDate && 
+          !task.completed &&
+          task.profileId === profile.id
+        );
 
-      if (incompleteTasks.length === 0) return;
+        if (incompleteTasks.length === 0) continue;
 
-      const rolledOverTasks = incompleteTasks.map(task => ({
-        ...task,
-        id: Date.now().toString() + Math.random(),
-        date: toDate
-      }));
+        const rolledOverTasks = incompleteTasks.map(task => ({
+          ...task,
+          id: Date.now().toString() + Math.random(),
+          date: toDate
+        }));
 
-      const updatedTasks = [...tasks, ...rolledOverTasks];
-      await AsyncStorage.setItem('tasks', JSON.stringify(updatedTasks));
-      setTasks(updatedTasks);
+        const updatedTasks = [...tasks, ...rolledOverTasks];
+        await AsyncStorage.setItem('tasks', JSON.stringify(updatedTasks));
+        setTasks(updatedTasks);
+      }
     } catch (error) {
       console.error('Error rolling over tasks:', error);
     }
@@ -177,13 +182,23 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const checkAndRolloverTasks = async () => {
       try {
-        const today = format(new Date(), 'yyyy-MM-dd');
+        // Use the device's timezone for consistent date handling
+        const now = new Date();
+        const today = format(now, 'yyyy-MM-dd');
         const lastRolloverDate = await AsyncStorage.getItem('lastRolloverDate');
+        const lastRolloverTime = await AsyncStorage.getItem('lastRolloverTime');
 
-        if (!lastRolloverDate || lastRolloverDate !== today) {
-          const yesterday = format(addDays(new Date(), -1), 'yyyy-MM-dd');
+        // Check if we need to rollover (either first time or new day)
+        const shouldRollover = !lastRolloverDate || 
+          !lastRolloverTime ||
+          lastRolloverDate !== today ||
+          (now.getTime() - new Date(lastRolloverTime).getTime() > 24 * 60 * 60 * 1000);
+
+        if (shouldRollover) {
+          const yesterday = format(addDays(now, -1), 'yyyy-MM-dd');
           await rolloverTasks(yesterday, today);
           await AsyncStorage.setItem('lastRolloverDate', today);
+          await AsyncStorage.setItem('lastRolloverTime', now.toISOString());
         }
       } catch (error) {
         console.error('Error checking rollover:', error);
@@ -191,9 +206,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     };
 
     checkAndRolloverTasks();
-    const interval = setInterval(checkAndRolloverTasks, 300000);
+    // Check once per hour instead of every 5 minutes
+    const interval = setInterval(checkAndRolloverTasks, 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [tasks]);
+  }, []); // Remove tasks dependency to prevent unnecessary checks
 
   // Helper function to sort tasks
   const sortTasks = (tasks: Task[]) => {

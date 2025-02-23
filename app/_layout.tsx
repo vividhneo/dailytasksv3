@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { TaskProvider } from '../contexts/TaskContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SwipeProvider } from '../contexts/SwipeContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -39,11 +40,13 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TaskProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-        </Stack>
-      </TaskProvider>
+      <SwipeProvider>
+        <TaskProvider>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+          </Stack>
+        </TaskProvider>
+      </SwipeProvider>
     </QueryClientProvider>
   );
 }

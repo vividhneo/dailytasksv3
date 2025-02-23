@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Modal, Platform, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { typography } from '../constants/theme';
 
@@ -38,14 +38,11 @@ export default function Settings({ profiles, isOpen, onPress, onRenameProfile, o
         visible={isOpen}
         onRequestClose={onPress}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1}
-          onPress={onPress}
-        >
+        <View style={styles.modalContainer}>
           <TouchableOpacity 
-            activeOpacity={1} 
-            onPress={(e) => e.stopPropagation()}
+            style={styles.modalOverlay} 
+            activeOpacity={1}
+            onPress={onPress}
           >
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
@@ -60,18 +57,20 @@ export default function Settings({ profiles, isOpen, onPress, onRenameProfile, o
                 {profiles.map(profile => (
                   <View key={profile.id} style={styles.profileContainer}>
                     <Text style={styles.profileText}>{profile.name}</Text>
-                    <TouchableOpacity onPress={() => onRenameProfile(profile.id, 'New Name')}>
-                      <Text style={styles.renameText}>Rename</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => onDeleteProfile(profile.id)}>
-                      <Text style={styles.deleteText}>Delete</Text>
-                    </TouchableOpacity>
+                    <View style={styles.actionButtons}>
+                      <TouchableOpacity onPress={() => onRenameProfile(profile.id, 'New Name')}>
+                        <Text style={styles.renameText}>Rename</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => onDeleteProfile(profile.id)}>
+                        <Text style={styles.deleteText}>Delete</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 ))}
               </View>
             </View>
           </TouchableOpacity>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -81,9 +80,12 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
-  modalOverlay: {
+  modalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalOverlay: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -91,13 +93,19 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 12,
     padding: 20,
-    width: 320,
-    maxWidth: '90%',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    width: '90%',
+    maxWidth: 400,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      },
+      android: {
+        elevation: 5,
+      },
+    }),
   },
   modalHeader: {
     flexDirection: 'row',
@@ -125,6 +133,11 @@ const styles = StyleSheet.create({
   },
   profileText: {
     fontFamily: typography.fontFamily.regular,
+    fontSize: 16,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 16,
   },
   renameText: {
     color: '#007BFF',

@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import {
-  PanGestureHandler,
-  TapGestureHandler,
+  Swipeable,
   GestureHandlerRootView,
-  State,
 } from 'react-native-gesture-handler';
-import Animated, { 
-  useAnimatedGestureHandler,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-  runOnJS
-} from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { typography } from '../constants/theme';
+import { useSwipe } from '../contexts/SwipeContext';
 
 interface TaskProps {
   task: {
@@ -25,77 +18,100 @@ interface TaskProps {
   onDelete: (id: string) => void;
 }
 
-const SWIPE_THRESHOLD = 70;
-const DELETE_WIDTH = 100;
-
 export default function Task({ task, onToggle, onDelete }: TaskProps) {
-  const translateX = useSharedValue(0);
-  const [isPanning, setIsPanning] = useState(false);
+  const swipeableRef = useRef<Swipeable>(null);
+  const { swipedItemId, setSwipedItemId } = useSwipe();
+  const [isSwipeActive, setIsSwipeActive] = useState(false);
 
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      runOnJS(setIsPanning)(true);
-    },
-    onActive: (event) => {
-      translateX.value = Math.max(-DELETE_WIDTH, Math.min(0, event.translationX));
-    },
-    onEnd: (event) => {
-      const shouldDelete = translateX.value < -SWIPE_THRESHOLD;
-      translateX.value = withSpring(shouldDelete ? -DELETE_WIDTH : 0, {
-        damping: 20,
-        stiffness: 200,
-      });
-      // Reset panning state after animation
-      setTimeout(() => runOnJS(setIsPanning)(false), 100);
-    },
-  });
+  React.useEffect(() => {
+    if (swipedItemId && swipedItemId !== task.id && swipeableRef.current) {
+      swipeableRef.current.close();
+    }
+  }, [swipedItemId]);
 
-  const rStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
+  const renderRightActions = () => {
+    return (
+      <TouchableOpacity 
+        style={styles.deleteButton}
+        onPress={() => {
+          onDelete(task.id);
+          setSwipedItemId(null);
+        }}
+      >
+        <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+      </TouchableOpacity>
+    );
+  };
 
-  const deleteStyle = useAnimatedStyle(() => {
-    const opacity = Math.min(1, -translateX.value / DELETE_WIDTH);
-    return { opacity };
-  });
-
-  const handleTapStateChange = ({ nativeEvent }: { nativeEvent: { state: number } }) => {
-    if (nativeEvent.state === State.END && !isPanning) {
+  const handleTaskPress = () => {
+    if (!isSwipeActive) {
       onToggle();
     }
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity 
-        onPress={onToggle}
-        style={styles.taskRow}
-      >
-        <View style={[
-          styles.checkbox,
-          task.completed ? styles.checkedBox : styles.uncheckedBox
-        ]} />
-        <Text style={[
-          styles.taskText,
-          task.completed && styles.completedText,
-          { fontFamily: typography.fontFamily.regular }
-        ]}>
-          {task.text}
-        </Text>
-      </TouchableOpacity>
-    </View>
+    <GestureHandlerRootView>
+      <View style={styles.taskContainer}>
+        <Swipeable
+          ref={swipeableRef}
+          renderRightActions={renderRightActions}
+          onSwipeableOpen={() => {
+            setIsSwipeActive(true);
+            setSwipedItemId(task.id);
+          }}
+          onSwipeableClose={() => {
+            setIsSwipeActive(false);
+            setSwipedItemId(null);
+          }}
+          onSwipeableWillOpen={() => setIsSwipeActive(true)}
+          rightThreshold={40}
+        >
+          <TouchableOpacity 
+            onPress={handleTaskPress}
+            style={[styles.container, styles.taskRow]}
+          >
+            <View style={[
+              styles.checkbox,
+              task.completed ? styles.checkedBox : styles.uncheckedBox
+            ]} />
+            <Text style={[
+              styles.taskText,
+              task.completed && styles.completedText
+            ]}>
+              {task.text}
+            </Text>
+          </TouchableOpacity>
+        </Swipeable>
+      </View>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  taskContainer: {
+    position: 'relative',
     marginVertical: 6,
+  },
+  container: {
+    backgroundColor: 'transparent',
+    borderRadius: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   taskRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 8,
-    paddingHorizontal: 4,
+    paddingHorizontal: 0,
   },
   checkbox: {
     width: 24,
@@ -115,9 +131,19 @@ const styles = StyleSheet.create({
   taskText: {
     fontSize: 16,
     color: '#716666',
+    fontFamily: typography.fontFamily.regular,
   },
   completedText: {
     textDecorationLine: 'line-through',
+    textDecorationStyle: 'solid',
+    textDecorationColor: '#B64328',
     opacity: 0.7,
+  },
+  deleteButton: {
+    backgroundColor: '#EDEDED',
+    width: 80,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

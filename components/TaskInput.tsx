@@ -11,7 +11,7 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
 
   const handleSubmit = () => {
     if (text.trim()) {
-      onSubmit(text.trim());
+      onSubmit(text);
       setText('');
     }
   };
@@ -21,32 +21,34 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
       <TextInput
         style={styles.input}
         placeholder="Add a task..."
-        placeholderTextColor="#716666"
         value={text}
         onChangeText={setText}
         onSubmitEditing={handleSubmit}
-        returnKeyType="done"
       />
+      {/* <TouchableOpacity onPress={handleSubmit}>
+        <Text style={styles.buttonText}>Add</Text>
+      </TouchableOpacity> */}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 40,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   input: {
-    fontSize: 16,
-    color: '#716666',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderStyle: 'dotted',
-    borderBottomColor: '#716666',
+    flex: 1,
+    padding: 10,
     fontFamily: typography.fontFamily.regular,
+    color: '#716666',
+    paddingTop: 20,
+
+
+  },
+  buttonText: { 
+    marginLeft: 10,
+    fontFamily: typography.fontFamily.semiBold,
+    color: '#716666',
   },
 });
