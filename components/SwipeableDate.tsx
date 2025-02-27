@@ -34,6 +34,7 @@ export default function DateNavigator({ date, onDateChange, taskCount, completed
               shadowRadius: 32,
             }]}
           >
+            
             <View style={styles.dateTextContainer}>
               <Text style={styles.dateText}>
                 {format(date, 'EEEE, MMMM d')}

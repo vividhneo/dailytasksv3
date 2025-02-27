@@ -1,18 +1,33 @@
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef, useCallback } from 'react';
 import { View, StyleSheet, SafeAreaView, TouchableOpacity, Platform, Modal, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { format } from 'date-fns';
 import { Calendar } from 'react-native-calendars';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
-import ProfileSelector from '../components/ProfileSelector';
+import ProfileSelector from './components/ProfileSelector';
 import SwipeableDate from '../components/SwipeableDate';
 import Settings from '../components/Settings';
 import { useTaskContext } from '../contexts/TaskContext';
-import type { Task as TaskType, Profile } from '../types/task';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import CalendarIcon from '../assets/icons/calendar.svg';
+import { SvgIcon, ICONS } from './utils/svg-utils';
+import { CalendarIcon } from './components/icons/CalendarIcon';
+import { SettingsIcon } from './components/icons/SettingsIcon';
+
+// Define types inline to avoid import errors
+interface Task {
+  id: string;
+  text: string;
+  completed: boolean;
+  profileId: string;
+  date: string;
+}
+
+interface Profile {
+  id: string;
+  name: string;
+}
 
 interface CalendarDay {
   timestamp: number;
@@ -44,7 +59,27 @@ export default function IndexScreen() {
   const isHandlingAction = useRef(false);
 
   const log = (message: string, ...args: any[]) => {
-    console.log(`[UI] ${message}`, ...args);
+    console.log(`[IndexScreen] ${message}`, ...args);
+  };
+
+  // Add a ref to track touch events
+  const touchStartTarget = useRef<any>(null);
+
+  // Enhanced logging for state changes
+  const setOpenComponentWithLogging = useCallback((component: OpenComponent, source: string) => {
+    log(`Setting openComponent to ${component} from source: ${source}`);
+    log(`Previous value was: ${openComponent}`);
+    setOpenComponent(component);
+  }, [openComponent]);
+  
+  // Enhanced logging for touch events
+  const handleTouchStart = (e: any, componentName: string) => {
+    log(`Touch start on ${componentName}, target:`, e.target);
+    log(`Current openComponent: ${openComponent}`);
+    // Log the event path if available
+    if (e.nativeEvent && e.nativeEvent.path) {
+      log(`Event path:`, e.nativeEvent.path);
+    }
   };
 
   if (loading) {
@@ -67,11 +102,11 @@ export default function IndexScreen() {
   const currentProfile = profiles.find(p => p.id === currentProfileId) || profiles[0];
 
   const filteredTasks = tasks.filter(
-    (task: TaskType) => task.date === format(selectedDate, 'yyyy-MM-dd')
+    (task: Task) => task.date === format(selectedDate, 'yyyy-MM-dd')
   );
 
   const completedTasks = filteredTasks.filter(
-    (task: TaskType) => task.completed
+    (task: Task) => task.completed
   );
 
   const handleAddTask = (text: string) => {
@@ -79,15 +114,17 @@ export default function IndexScreen() {
   };
 
   // Replace handleCalendarClose with this more generic handler
-  const handleComponentToggle = (component: OpenComponent, callback?: () => void) => {
-    log(`Toggling component: ${component}, current: ${openComponent}`);
+  const handleComponentToggle = (component: OpenComponent, callback?: () => void, forceOpen: boolean = false) => {
+    log(`Toggling component: ${component}, current: ${openComponent}, forceOpen: ${forceOpen}`);
     
-    if (openComponent === component) {
-      // If clicking the same component, close it
-      setOpenComponent('none');
+    if (openComponent === component && !forceOpen) {
+      // If clicking the same component and not forcing open, close it
+      log(`Closing component ${component} because it's already open`);
+      setOpenComponentWithLogging('none', 'handleComponentToggle-close');
     } else {
-      // If clicking a different component, switch to it
-      setOpenComponent(component);
+      // If clicking a different component or forcing open, switch to it
+      log(`Opening component ${component} from previous ${openComponent}`);
+      setOpenComponentWithLogging(component, 'handleComponentToggle-open');
       if (callback) {
         callback();
       }
@@ -95,41 +132,77 @@ export default function IndexScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View 
+      style={styles.container}
+      onTouchStart={(e) => handleTouchStart(e, 'container')}
+    >
       <LinearGradient
         colors={['#F8F8F8', '#F8F8F8', '#EAE8E8']}
         locations={[0, 0.67, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.content, { paddingTop: insets.top }]}>
+      <SafeAreaView 
+        style={styles.safeArea}
+        onTouchStart={(e) => handleTouchStart(e, 'safeArea')}
+      >
+        <View 
+          style={[styles.content, { paddingTop: insets.top }]}
+          onTouchStart={(e) => {
+            handleTouchStart(e, 'content');
+            // Don't stop propagation here to see if events bubble up
+          }}
+        >
           {/* Add overlay first */}
           {openComponent !== 'none' && (
             <TouchableOpacity 
               style={styles.modalOverlay}
               activeOpacity={1}
-              onPress={() => {
-                log('Overlay pressed, closing component:', openComponent);
-                setOpenComponent('none');
+              onPress={(e) => {
+                log('Overlay pressed, target:', e.target);
+                log('touchStartTarget:', touchStartTarget.current);
+                
+                // Check if the press started and ended on the overlay itself
+                if (e.target === e.currentTarget) {
+                  log('Closing component from overlay press:', openComponent);
+                  setOpenComponentWithLogging('none', 'overlay-press');
+                } else {
+                  log('Press ignored - not directly on overlay');
+                }
               }}
             />
           )}
 
           {/* Then add all other content */}
-          <View style={styles.header}>
-            <View style={[{ flex: 1 }, styles.profileSelectorContainer]}>
+          <View 
+            style={styles.header}
+            onTouchStart={(e) => {
+              handleTouchStart(e, 'header');
+              // Don't stop propagation to see if events bubble up
+            }}
+          >
+            <View 
+              style={[{ flex: 1 }, styles.profileSelectorContainer]}
+              onTouchStart={(e) => {
+                handleTouchStart(e, 'profileSelectorContainer');
+                // Stop propagation
+                e.stopPropagation();
+              }}
+            >
               <ProfileSelector
-                currentProfile={currentProfile}
                 profiles={profiles}
-                isOpen={openComponent === 'profile'}
-                onPress={() => handleComponentToggle('profile')}
-                onProfileChange={(id) => {
+                currentProfileId={currentProfileId}
+                onProfileSelect={(id: string) => {
+                  log('Profile changed to:', id);
                   setCurrentProfileId(id);
-                  setOpenComponent('none');
+                  setOpenComponentWithLogging('none', 'profile-change');
                 }}
-                onCreateProfile={(name) => {
+                onProfileCreate={(name: string) => {
+                  log('Creating new profile:', name);
                   addProfile(name);
-                  setOpenComponent('none');
+                  setOpenComponentWithLogging('none', 'profile-create');
+                }}
+                logCloseAttempt={(reason: string) => {
+                  log(`ProfileSelector requested close: ${reason}`);
                 }}
               />
             </View>
@@ -138,24 +211,14 @@ export default function IndexScreen() {
                 onPress={() => handleComponentToggle('calendar')}
                 style={styles.calendarButton}
               >
-                <CalendarIcon width={16} height={16} fill="#666666" />
+                <CalendarIcon color="#716666" />
               </TouchableOpacity>
-              <Settings 
-                profiles={profiles}
-                isOpen={openComponent === 'settings'}
+              <TouchableOpacity
                 onPress={() => handleComponentToggle('settings')}
-                onRenameProfile={(id, name) => {
-                  setProfiles(profiles.map(p => p.id === id ? {...p, name} : p));
-                  setOpenComponent('none');
-                }}
-                onDeleteProfile={(id) => {
-                  setProfiles(profiles.filter(p => p.id !== id));
-                  if (currentProfileId === id) {
-                    setCurrentProfileId('1');
-                  }
-                  setOpenComponent('none');
-                }}
-              />
+                style={styles.settingsButton}
+              >
+                <SettingsIcon color="#716666" />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -172,7 +235,7 @@ export default function IndexScreen() {
 
                   if (selectedDay <= today) {
                     setSelectedDate(selectedDay);
-                    setOpenComponent('none');
+                    setOpenComponentWithLogging('none', 'calendar-day-press');
                   }
                 }}
                 maxDate={new Date().toISOString()}
@@ -195,7 +258,7 @@ export default function IndexScreen() {
                 style={styles.todayButton}
                 onPress={() => {
                   setSelectedDate(new Date());
-                  setOpenComponent('none');
+                  setOpenComponentWithLogging('none', 'today-button-press');
                 }}
               >
                 <Text style={styles.todayButtonText}>Today</Text>
@@ -211,7 +274,7 @@ export default function IndexScreen() {
               completedCount={completedTasks.length}
             />
             <View style={styles.taskList}>
-              {filteredTasks.map((task: TaskType) => (
+              {filteredTasks.map((task: Task) => (
                 <Task
                   key={task.id}
                   task={task}
@@ -366,12 +429,12 @@ const styles = StyleSheet.create({
   taskList: {
     paddingTop: 20,
     paddingLeft: 20,
-    alignItems: 'left',
+    alignItems: 'flex-start',
     width: '100%',
   },
   addTaskContainer: {
-    paddingLeft: 50,
-    alignItems: 'left',
+    paddingLeft: 20,
+    alignItems: 'flex-start',
     width: '100%',
   },
   profileSelectorContainer: {
@@ -396,5 +459,8 @@ const styles = StyleSheet.create({
   taskCount: {
     fontSize: 14,
     color: '#716666',
+  },
+  settingsButton: {
+    padding: 8,
   },
 });
