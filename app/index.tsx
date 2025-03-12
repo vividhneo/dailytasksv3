@@ -9,7 +9,7 @@ import TaskInput from '../components/TaskInput';
 import Task from '../components/Task';
 import ProfileSelector from './components/ProfileSelector';
 import SwipeableDate from '../components/SwipeableDate';
-import Settings from '../components/Settings';
+import Settings from './components/Settings';
 import { useTaskContext } from '../contexts/TaskContext';
 import { SvgIcon, ICONS } from './utils/svg-utils';
 import { CalendarIcon } from './components/icons/CalendarIcon';
@@ -137,7 +137,7 @@ export default function IndexScreen() {
       onTouchStart={(e) => handleTouchStart(e, 'container')}
     >
       <LinearGradient
-        colors={['#F8F8F8', '#F8F8F8', '#EAE8E8']}
+        colors={['#EAE8E8', '#F8F8F8', '#F8F8F8']}
         locations={[0, 0.67, 1]}
         style={StyleSheet.absoluteFill}
       />
@@ -263,6 +263,35 @@ export default function IndexScreen() {
               >
                 <Text style={styles.todayButtonText}>Today</Text>
               </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Settings popup */}
+          {openComponent === 'settings' && (
+            <View style={styles.settingsPopup}>
+              <Settings
+                profiles={profiles}
+                isOpen={true}
+                onPress={() => setOpenComponentWithLogging('none', 'settings-close')}
+                onRenameProfile={(id: string, name: string) => {
+                  const updatedProfiles = profiles.map(profile => 
+                    profile.id === id ? { ...profile, name } : profile
+                  );
+                  setProfiles(updatedProfiles);
+                }}
+                onDeleteProfile={(id: string) => {
+                  // Don't delete the last profile
+                  if (profiles.length <= 1) return;
+                  
+                  const updatedProfiles = profiles.filter(profile => profile.id !== id);
+                  setProfiles(updatedProfiles);
+                  
+                  // If the deleted profile was the current one, switch to the first available
+                  if (id === currentProfileId) {
+                    setCurrentProfileId(updatedProfiles[0].id);
+                  }
+                }}
+              />
             </View>
           )}
 
@@ -462,5 +491,14 @@ const styles = StyleSheet.create({
   },
   settingsButton: {
     padding: 8,
+  },
+  settingsPopup: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    zIndex: 100,
   },
 });
