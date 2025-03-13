@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, Dimensions } from 'react-native';
 import {
   Swipeable,
   GestureHandlerRootView,
@@ -7,6 +7,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { typography } from '../constants/theme';
 import { useSwipe } from '../contexts/SwipeContext';
+
+// Get screen width for full-width touch area
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface TaskProps {
   task: {
@@ -69,17 +72,20 @@ export default function Task({ task, onToggle, onDelete }: TaskProps) {
           <TouchableOpacity 
             onPress={handleTaskPress}
             style={[styles.container, styles.taskRow]}
+            activeOpacity={0.7}
           >
-            <View style={[
-              styles.checkbox,
-              task.completed ? styles.checkedBox : styles.uncheckedBox
-            ]} />
-            <Text style={[
-              styles.taskText,
-              task.completed && styles.completedText
-            ]}>
-              {task.text}
-            </Text>
+            <View style={styles.contentContainer}>
+              <View style={[
+                styles.checkbox,
+                task.completed ? styles.checkedBox : styles.uncheckedBox
+              ]} />
+              <Text style={[
+                styles.taskText,
+                task.completed && styles.completedText
+              ]}>
+                {task.text}
+              </Text>
+            </View>
           </TouchableOpacity>
         </Swipeable>
       </View>
@@ -91,10 +97,12 @@ const styles = StyleSheet.create({
   taskContainer: {
     position: 'relative',
     marginVertical: 6,
+    width: SCREEN_WIDTH,
   },
   container: {
     backgroundColor: 'transparent',
     borderRadius: 8,
+    width: SCREEN_WIDTH,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -112,6 +120,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     paddingHorizontal: 0,
+    width: '100%',
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
   checkbox: {
     width: 24,
@@ -132,6 +146,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#716666',
     fontFamily: typography.fontFamily.regular,
+    flex: 1,
   },
   completedText: {
     textDecorationLine: 'line-through',
@@ -145,5 +160,6 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingRight: 10,
   },
 });

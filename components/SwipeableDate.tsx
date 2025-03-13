@@ -107,14 +107,10 @@ const styles = StyleSheet.create({
   progressContainer: {
     overflow: 'hidden',
     height: 6,
-    // borderBottomLeftRadius: 2,
-    // borderBottomRightRadius: 9,
   },
   progressBackground: {
     height: 6,
     backgroundColor: '#E9E8E8',
-    // borderBottomLeftRadius: 9,
-    // borderBottomRightRadius: 9,
   },
   progressBar: {
     height: 6,

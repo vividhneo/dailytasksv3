@@ -32,9 +32,6 @@ export default function TaskInput({ onSubmit }: TaskInputProps) {
         onChangeText={setText}
         onSubmitEditing={handleSubmit}
       />
-      {/* <TouchableOpacity onPress={handleSubmit}>
-        <Text style={styles.buttonText}>Add</Text>
-      </TouchableOpacity> */}
     </View>
   );
 }
@@ -44,11 +41,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 0,
-    paddingVertical: 8,
+    paddingVertical: 15,
   },
   input: {
     flex: 1,
-    padding: -10,
     fontFamily: typography.fontFamily.regular,
     color: '#716666',
     paddingTop: 0,

@@ -94,8 +94,9 @@ export default function ProfileSelector({
         <Text style={styles.selectorText}>{currentProfile?.name || 'Select Profile'}</Text>
         <View style={styles.iconContainer}>
           {isOpen ? (
-            <Ionicons name="chevron-up" size={24} color="#716666" />
-          ) : (
+            <ArrowDownIcon width={24} height={24} color="#716666" />
+
+        ) : (
             <ArrowDownIcon width={24} height={24} color="#716666" />
           )}
         </View>
